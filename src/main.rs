@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::env::args;
 use std::fs::File;
 use std::io::Read;
+use crate::pangram::count_pangram_words;
 
 // Alphabet used for the words sorted in descending order of usage
 fn alphabet(words : &Vec<String>) -> Vec<char> {
@@ -22,13 +23,23 @@ fn alphabet(words : &Vec<String>) -> Vec<char> {
     ).collect()
 }
 
+fn strip(word : &str) -> String {
+    String::from_iter(word.chars().filter(
+        |c| c.is_alphabetic()
+    ).map(
+        |c| c.to_uppercase()
+    ).flatten())
+}
+
 fn load_words(path : &str) -> Option<Vec<String>> {
     let mut file = File::open(path).ok()?;
     let mut words_buff = String::new();
     file.read_to_string(&mut words_buff).ok()?;
     Some(
-        words_buff.split('\n').map(
-            |word| word.to_string()
+        words_buff.split('\n').skip_while(
+            |line| *line != "---"
+        ).skip(1).map(
+            |word| strip(word)
         ).collect()
     )
 }
@@ -40,4 +51,9 @@ fn main() {
     let alpha = alphabet(&words);
     println!("Alphabet of {} characters found:", alpha.len());
     println!("{}", String::from_iter(alpha.iter()));
+    let alphabet_map = HashMap::from_iter(
+        alpha.iter().enumerate().map(|(i, c)| (*c, i))
+    );
+    let count = count_pangram_words::<u32>(&words, &alphabet_map);
+    println!("Number possible pangrams word sets is {}", count)
 }
