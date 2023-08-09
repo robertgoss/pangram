@@ -1,3 +1,5 @@
+mod pangram;
+
 use std::collections::HashMap;
 use std::env::args;
 use std::fs::File;
